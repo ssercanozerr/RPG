@@ -6,7 +6,7 @@ public class FallowCamera : MonoBehaviour
 {
     [SerializeField] Transform player;
 
-    void Update()
+    void LateUpdate()
     {
         transform.position = player.position;        
     }
