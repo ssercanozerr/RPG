@@ -1,6 +1,7 @@
 ﻿using RPG.Combat;
 using RPG.Core;
 using RPG.Movement;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,12 +12,17 @@ namespace RPG.Controller
     {
         [SerializeField] float chaseDistance = 5f;
         [SerializeField] float suspicionTime = 5f;
+        [SerializeField] float wayPointToTolerence = 1f;
+        [SerializeField] float wayPointLifeTime = 3f;
+        [SerializeField] PatrolPath patrolPath;
         GameObject player;
         Fighter fighter;
         Health health;
         Mover mover;
         Vector3 enemyLocation;
         float timeSinceLastSawPlayer;
+        float timeSinceArrivedWayPoint;
+        int currentWayPointIndex = 0;
         void Start()
         {
             player = GameObject.FindWithTag("Player");
@@ -45,9 +51,39 @@ namespace RPG.Controller
             }
             else
             {
-                mover.StartMoveAction(enemyLocation);
+                Vector3 nextPosition = enemyLocation;
+                if (patrolPath != null)
+                {
+                    if (AtWayPoint())
+                    {
+                        timeSinceArrivedWayPoint= 0;
+                        CycleWayPoint();
+                    }
+                    nextPosition = GetNextWayPoint();
+                }
+                if(timeSinceArrivedWayPoint > wayPointLifeTime)
+                {
+                    mover.StartMoveAction(nextPosition);
+                }
             }
             timeSinceLastSawPlayer += Time.deltaTime;
+            timeSinceArrivedWayPoint += Time.deltaTime;
+        }
+
+        private Vector3 GetNextWayPoint()
+        {
+            return patrolPath.GetWayPointPosition(currentWayPointIndex);
+        }
+
+        private void CycleWayPoint()
+        {
+            currentWayPointIndex = patrolPath.GetNextIndex(currentWayPointIndex);
+        }
+
+        private bool AtWayPoint()
+        {
+            float distanceWayPoint = Vector3.Distance(transform.position, GetNextWayPoint());
+            return distanceWayPoint < wayPointToTolerence;
         }
 
         private float DistanceToPlayer()
