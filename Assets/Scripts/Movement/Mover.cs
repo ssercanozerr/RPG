@@ -9,6 +9,8 @@ namespace RPG.Movement
 {
     public class Mover : MonoBehaviour, IAction
     {
+        [SerializeField] float maxSpeed = 6f;
+
         NavMeshAgent navMeshAgent;
         Health health;
 
@@ -24,16 +26,16 @@ namespace RPG.Movement
             UpdateAnimator();
         }
 
-        public void StartMoveAction(Vector3 hit)
+        public void StartMoveAction(Vector3 hit, float speedFraction)
         {
             GetComponent<ActionScheduler>().StartAction(this);
             GetComponent<Fighter>().Cancel();
-            navMeshAgent.destination = hit;
-            navMeshAgent.isStopped = false;
+            MoveTo(hit, speedFraction);
         }
 
-        public void MoveTo(Vector3 hit)
+        public void MoveTo(Vector3 hit, float speedFraction)
         {
+            navMeshAgent.speed =  maxSpeed * speedFraction;
             navMeshAgent.destination = hit;
             navMeshAgent.isStopped = false;
         }
